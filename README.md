@@ -38,6 +38,18 @@ Sentinel wraps your LLM interactions and provides:
 
 ---
 
+## Live Demo
+
+**🚀 Try it now:** [https://sentinel-pas233odta-uc.a.run.app](https://sentinel-pas233odta-uc.a.run.app)
+
+```bash
+curl -X POST https://sentinel-pas233odta-uc.a.run.app/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "What is machine learning?"}'
+```
+
+---
+
 ## Quick Start
 
 ### Prerequisites
@@ -69,6 +81,7 @@ Create a `.env` file:
 DD_API_KEY=your_datadog_api_key
 DD_APP_KEY=your_datadog_app_key
 GOOGLE_API_KEY=your_google_ai_api_key
+DD_SITE=datadoghq.eu
 ```
 
 ### Run
@@ -134,10 +147,15 @@ Visit `http://localhost:8000/docs` for the API documentation.
 ### Example: Send a Chat Request
 
 ```bash
+# Local
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Explain machine learning in simple terms"}'
-```
+
+# Live deployment
+curl -X POST https://sentinel-pas233odta-uc.a.run.app/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Explain machine learning in simple terms"}'
 
 Response includes the LLM output plus:
 - 16 metrics (tokens, costs, latency, etc.)

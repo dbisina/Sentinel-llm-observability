@@ -1,6 +1,6 @@
 # API Reference
 
-Base URL: `http://localhost:8000` (or your deployed URL)
+Base URL: `http://localhost:8000` or **Live**: `https://sentinel-pas233odta-uc.a.run.app`
 
 ---
 
@@ -87,10 +87,15 @@ Process an LLM request with full observability.
 ### Example
 
 ```bash
+# Local
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Explain quantum computing in simple terms"}'
-```
+
+# Live
+curl -X POST https://sentinel-pas233odta-uc.a.run.app/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Explain quantum computing in simple terms"}'
 
 ---
 

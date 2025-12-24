@@ -51,10 +51,10 @@ gcloud run deploy sentinel \
 After deployment:
 
 ```
-Service URL: https://sentinel-xxxxx-uc.a.run.app
+Service URL: https://sentinel-pas233odta-uc.a.run.app
 ```
 
-This is your public URL for hackathon submission.
+This is the public URL for hackathon submission.
 
 ---
 
@@ -62,10 +62,10 @@ This is your public URL for hackathon submission.
 
 ```bash
 # Health check
-curl https://YOUR_URL/health
+curl https://sentinel-pas233odta-uc.a.run.app/health
 
 # Send a chat request
-curl -X POST https://YOUR_URL/chat \
+curl -X POST https://sentinel-pas233odta-uc.a.run.app/chat \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Hello!"}'
 ```
