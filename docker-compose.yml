@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  sentinel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinel-llm-observability
+    ports:
+      - "8000:8000"
+    environment:
+      # Datadog Configuration
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_APP_KEY=${DD_APP_KEY}
+      - DD_SITE=${DD_SITE:-datadoghq.eu}
+      
+      # Google AI Configuration (uses API key, not service account)
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      
+      # Application Configuration
+      - PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ANOMALY_THRESHOLD=${ANOMALY_THRESHOLD:-3.0}
+      - METRICS_WINDOW_SIZE=${METRICS_WINDOW_SIZE:-100}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  sentinel-data:

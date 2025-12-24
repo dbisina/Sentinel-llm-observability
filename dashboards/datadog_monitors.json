@@ -1,0 +1,132 @@
+{
+    "monitors": [
+        {
+            "name": "[LLM Observability] Latency Anomaly Detection",
+            "type": "query alert",
+            "query": "avg(last_5m):anomalies(avg:llm.latency.ms{*}, 'agile', 2, direction='above', interval=60, alert_window='last_5m', count_default_zero='true') >= 1",
+            "message": "## LLM Latency Anomaly Detected\n\n**Alert:** Response latency is significantly above normal baseline.\n\n### Details\n- Current latency: {{value}} ms\n- Threshold: 2 standard deviations above baseline\n\n### Recommended Actions\n1. Check for increased prompt complexity\n2. Review token usage patterns\n3. Verify model endpoint health\n4. Check for upstream API issues\n\n@slack-llm-alerts @pagerduty-llm-oncall",
+            "tags": [
+                "service:llm-observability",
+                "env:production",
+                "team:ml-platform",
+                "severity:high"
+            ],
+            "options": {
+                "thresholds": {
+                    "critical": 1,
+                    "warning": 0.5
+                },
+                "notify_no_data": false,
+                "renotify_interval": 60,
+                "escalation_message": "Latency anomaly persisting. Escalating to on-call engineer.",
+                "include_tags": true,
+                "require_full_window": true,
+                "new_host_delay": 300,
+                "evaluation_delay": 60
+            },
+            "priority": 2,
+            "restricted_roles": null
+        },
+        {
+            "name": "[LLM Observability] Cost Spike Alert",
+            "type": "query alert",
+            "query": "avg(last_10m):avg:llm.cost.per_request{*} > 0.01",
+            "message": "## LLM Cost Spike Detected\n\n**Alert:** Per-request cost has exceeded the threshold of $0.01.\n\n### Details\n- Current cost per request: ${{value}}\n- Threshold: $0.01\n\n### Potential Causes\n1. Unusually long prompts\n2. High token output requests\n3. Model tier changes\n4. Prompt injection attempts\n\n### Recommended Actions\n1. Review recent prompt patterns\n2. Check for abuse/misuse\n3. Validate input sanitization\n4. Consider implementing rate limits\n\n@slack-llm-alerts",
+            "tags": [
+                "service:llm-observability",
+                "env:production",
+                "team:ml-platform",
+                "severity:medium",
+                "category:cost"
+            ],
+            "options": {
+                "thresholds": {
+                    "critical": 0.01,
+                    "warning": 0.005
+                },
+                "notify_no_data": false,
+                "renotify_interval": 120,
+                "include_tags": true
+            },
+            "priority": 3,
+            "restricted_roles": null
+        },
+        {
+            "name": "[LLM Observability] High Refusal Rate",
+            "type": "query alert",
+            "query": "avg(last_15m):avg:llm.response.is_refusal{*} * 100 > 10",
+            "message": "## High LLM Refusal Rate Detected\n\n**Alert:** Model refusal rate exceeds 10%.\n\n### Details\n- Current refusal rate: {{value}}%\n- Threshold: 10%\n\n### Potential Causes\n1. Content policy violations in prompts\n2. Prompt injection attempts\n3. Model safety filter issues\n4. Adversarial input patterns\n\n### Recommended Actions\n1. **SECURITY:** Review recent prompts for attack patterns\n2. Check for prompt injection attempts\n3. Analyze refused request content\n4. Consider adjusting safety thresholds\n\n@slack-llm-security @pagerduty-security",
+            "tags": [
+                "service:llm-observability",
+                "env:production",
+                "team:ml-platform",
+                "severity:high",
+                "category:security"
+            ],
+            "options": {
+                "thresholds": {
+                    "critical": 10,
+                    "warning": 5
+                },
+                "notify_no_data": false,
+                "renotify_interval": 30,
+                "include_tags": true
+            },
+            "priority": 1,
+            "restricted_roles": null
+        },
+        {
+            "name": "[LLM Observability] Throughput Drop",
+            "type": "query alert",
+            "query": "avg(last_5m):anomalies(avg:llm.throughput.tokens_per_sec{*}, 'basic', 2, direction='below', interval=60, alert_window='last_5m', count_default_zero='true') >= 1",
+            "message": "## LLM Throughput Degradation Detected\n\n**Alert:** Token processing throughput has dropped significantly.\n\n### Details\n- Current throughput: {{value}} tokens/sec\n- Detection: 2 standard deviations below baseline\n\n### Potential Causes\n1. Model endpoint degradation\n2. Network latency issues\n3. Rate limiting active\n4. Resource contention\n\n### Recommended Actions\n1. Check model endpoint status\n2. Review API rate limits\n3. Verify network connectivity\n4. Scale resources if needed\n\n@slack-llm-alerts",
+            "tags": [
+                "service:llm-observability",
+                "env:production",
+                "team:ml-platform",
+                "severity:medium"
+            ],
+            "options": {
+                "thresholds": {
+                    "critical": 1,
+                    "warning": 0.5
+                },
+                "notify_no_data": true,
+                "no_data_timeframe": 10,
+                "renotify_interval": 60,
+                "include_tags": true
+            },
+            "priority": 2,
+            "restricted_roles": null
+        },
+        {
+            "name": "[LLM Observability] Context Window Exhaustion",
+            "type": "query alert",
+            "query": "avg(last_5m):avg:llm.prompt.context_utilization{*} > 90",
+            "message": "## Context Window Near Exhaustion\n\n**Alert:** Context window utilization exceeds 90%.\n\n### Details\n- Current utilization: {{value}}%\n- Threshold: 90%\n\n### Impact\n- Responses may be truncated\n- Model may miss important context\n- Quality degradation likely\n\n### Recommended Actions\n1. Implement prompt summarization\n2. Use sliding window approach\n3. Prioritize recent context\n4. Consider chunking strategies\n\n@slack-llm-alerts",
+            "tags": [
+                "service:llm-observability",
+                "env:production",
+                "team:ml-platform",
+                "severity:medium"
+            ],
+            "options": {
+                "thresholds": {
+                    "critical": 90,
+                    "warning": 80
+                },
+                "notify_no_data": false,
+                "renotify_interval": 60,
+                "include_tags": true
+            },
+            "priority": 3,
+            "restricted_roles": null
+        }
+    ],
+    "_metadata": {
+        "description": "Datadog Monitor definitions for LLM Observability Platform",
+        "version": "1.0.0",
+        "created_for": "AI Partner Catalyst Hackathon - Datadog Challenge",
+        "import_instructions": "To import: Datadog → Monitors → Manage Monitors → Create → Import. Paste individual monitor objects."
+    }
+}

@@ -1,0 +1,437 @@
+{
+    "title": "LLM Observability Dashboard - AI Partner Catalyst",
+    "description": "End-to-end observability for LLM applications with real-time anomaly detection, health monitoring, and incident management. Built for AI Partner Catalyst Hackathon - Datadog Challenge.",
+    "widgets": [
+        {
+            "id": 100,
+            "definition": {
+                "title": "🚨 Monitor Status",
+                "title_size": "16",
+                "title_align": "left",
+                "type": "manage_status",
+                "display_format": "countsAndList",
+                "color_preference": "text",
+                "hide_zero_counts": false,
+                "query": "service:llm-observability",
+                "sort": "status,asc",
+                "count": 10,
+                "start": 0,
+                "summary_type": "monitors",
+                "show_priority": true,
+                "show_last_triggered": true
+            },
+            "layout": {
+                "x": 0,
+                "y": 0,
+                "width": 4,
+                "height": 4
+            }
+        },
+        {
+            "id": 101,
+            "definition": {
+                "title": "🩺 Service Health",
+                "title_size": "16",
+                "title_align": "left",
+                "type": "check_status",
+                "check": "llm.health",
+                "grouping": "cluster",
+                "group_by": [
+                    "service"
+                ],
+                "tags": [
+                    "service:llm-observability"
+                ]
+            },
+            "layout": {
+                "x": 4,
+                "y": 0,
+                "width": 2,
+                "height": 2
+            }
+        },
+        {
+            "id": 102,
+            "definition": {
+                "title": "⚡ Active Alerts",
+                "title_size": "16",
+                "title_align": "center",
+                "type": "alert_value",
+                "alert_id": "0",
+                "precision": 0,
+                "unit": "alerts",
+                "text_align": "center"
+            },
+            "layout": {
+                "x": 6,
+                "y": 0,
+                "width": 2,
+                "height": 2
+            }
+        },
+        {
+            "id": 103,
+            "definition": {
+                "title": "📊 LLM Events Timeline",
+                "title_size": "16",
+                "title_align": "left",
+                "type": "event_timeline",
+                "query": "sources:llm-observability",
+                "tags_execution": "and"
+            },
+            "layout": {
+                "x": 8,
+                "y": 0,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 104,
+            "definition": {
+                "title": "📋 Recent Anomaly Events",
+                "title_size": "16",
+                "title_align": "left",
+                "type": "event_stream",
+                "query": "sources:llm-observability priority:all",
+                "event_size": "s",
+                "tags_execution": "and"
+            },
+            "layout": {
+                "x": 8,
+                "y": 2,
+                "width": 4,
+                "height": 4
+            }
+        },
+        {
+            "id": 105,
+            "definition": {
+                "title": "📈 Alert Trend (24h)",
+                "title_size": "16",
+                "title_align": "left",
+                "type": "alert_graph",
+                "alert_id": "0",
+                "viz_type": "timeseries"
+            },
+            "layout": {
+                "x": 4,
+                "y": 2,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 1,
+            "definition": {
+                "title": "LLM Request Rate",
+                "type": "timeseries",
+                "requests": [
+                    {
+                        "q": "sum:llm.tokens.total{*}.as_count()",
+                        "display_type": "bars"
+                    }
+                ]
+            },
+            "layout": {
+                "x": 0,
+                "y": 6,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 2,
+            "definition": {
+                "title": "Latency (ms)",
+                "type": "timeseries",
+                "requests": [
+                    {
+                        "q": "avg:llm.latency.ms{*}",
+                        "display_type": "line"
+                    },
+                    {
+                        "q": "percentile:llm.latency.ms{*} by {service}.p95",
+                        "display_type": "line"
+                    }
+                ]
+            },
+            "layout": {
+                "x": 4,
+                "y": 6,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 3,
+            "definition": {
+                "title": "Token Usage",
+                "type": "timeseries",
+                "requests": [
+                    {
+                        "q": "avg:llm.tokens.prompt{*}",
+                        "display_type": "area"
+                    },
+                    {
+                        "q": "avg:llm.tokens.response{*}",
+                        "display_type": "area"
+                    }
+                ]
+            },
+            "layout": {
+                "x": 8,
+                "y": 6,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 4,
+            "definition": {
+                "title": "Cost per Request ($)",
+                "type": "timeseries",
+                "requests": [
+                    {
+                        "q": "avg:llm.cost.per_request{*}",
+                        "display_type": "line"
+                    }
+                ]
+            },
+            "layout": {
+                "x": 0,
+                "y": 8,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 5,
+            "definition": {
+                "title": "Throughput (tokens/sec)",
+                "type": "timeseries",
+                "requests": [
+                    {
+                        "q": "avg:llm.throughput.tokens_per_sec{*}",
+                        "display_type": "line"
+                    }
+                ]
+            },
+            "layout": {
+                "x": 4,
+                "y": 8,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 6,
+            "definition": {
+                "title": "Quality Indicators",
+                "type": "timeseries",
+                "requests": [
+                    {
+                        "q": "avg:llm.response.is_refusal{*}",
+                        "display_type": "line"
+                    },
+                    {
+                        "q": "avg:llm.response.has_code{*}",
+                        "display_type": "line"
+                    }
+                ]
+            },
+            "layout": {
+                "x": 8,
+                "y": 8,
+                "width": 4,
+                "height": 2
+            }
+        },
+        {
+            "id": 7,
+            "definition": {
+                "title": "Prompt Complexity",
+                "type": "heatmap",
+                "requests": [
+                    {
+                        "q": "avg:llm.prompt.complexity_score{*}"
+                    }
+                ]
+            },
+            "layout": {
+                "x": 0,
+                "y": 10,
+                "width": 6,
+                "height": 2
+            }
+        },
+        {
+            "id": 8,
+            "definition": {
+                "title": "Context Window Utilization (%)",
+                "type": "timeseries",
+                "requests": [
+                    {
+                        "q": "avg:llm.prompt.context_utilization{*}",
+                        "display_type": "line"
+                    }
+                ],
+                "yaxis": {
+                    "max": "100"
+                }
+            },
+            "layout": {
+                "x": 6,
+                "y": 10,
+                "width": 6,
+                "height": 2
+            }
+        },
+        {
+            "id": 9,
+            "definition": {
+                "title": "Token Ratio (Prompt/Response)",
+                "type": "query_value",
+                "requests": [
+                    {
+                        "q": "avg:llm.tokens.ratio{*}",
+                        "aggregator": "avg"
+                    }
+                ],
+                "precision": 2
+            },
+            "layout": {
+                "x": 0,
+                "y": 12,
+                "width": 2,
+                "height": 2
+            }
+        },
+        {
+            "id": 10,
+            "definition": {
+                "title": "Avg Response Length",
+                "type": "query_value",
+                "requests": [
+                    {
+                        "q": "avg:llm.response.length{*}",
+                        "aggregator": "avg"
+                    }
+                ],
+                "precision": 0
+            },
+            "layout": {
+                "x": 2,
+                "y": 12,
+                "width": 2,
+                "height": 2
+            }
+        },
+        {
+            "id": 11,
+            "definition": {
+                "title": "Questions per Prompt",
+                "type": "query_value",
+                "requests": [
+                    {
+                        "q": "avg:llm.prompt.question_count{*}",
+                        "aggregator": "avg"
+                    }
+                ],
+                "precision": 1
+            },
+            "layout": {
+                "x": 4,
+                "y": 12,
+                "width": 2,
+                "height": 2
+            }
+        },
+        {
+            "id": 12,
+            "definition": {
+                "title": "Truncation Rate",
+                "type": "query_value",
+                "requests": [
+                    {
+                        "q": "avg:llm.response.is_truncated{*} * 100",
+                        "aggregator": "avg"
+                    }
+                ],
+                "precision": 1,
+                "custom_unit": "%"
+            },
+            "layout": {
+                "x": 6,
+                "y": 12,
+                "width": 2,
+                "height": 2
+            }
+        },
+        {
+            "id": 13,
+            "definition": {
+                "title": "Total Cost (Cumulative)",
+                "type": "query_value",
+                "requests": [
+                    {
+                        "q": "sum:llm.cost.per_request{*}.as_count()",
+                        "aggregator": "sum"
+                    }
+                ],
+                "precision": 4,
+                "custom_unit": "$"
+            },
+            "layout": {
+                "x": 8,
+                "y": 12,
+                "width": 2,
+                "height": 2
+            }
+        },
+        {
+            "id": 14,
+            "definition": {
+                "title": "Refusal Rate",
+                "type": "query_value",
+                "requests": [
+                    {
+                        "q": "avg:llm.response.is_refusal{*} * 100",
+                        "aggregator": "avg"
+                    }
+                ],
+                "precision": 1,
+                "custom_unit": "%"
+            },
+            "layout": {
+                "x": 10,
+                "y": 12,
+                "width": 2,
+                "height": 2
+            }
+        }
+    ],
+    "template_variables": [
+        {
+            "name": "service",
+            "prefix": "service",
+            "default": "llm-observability"
+        },
+        {
+            "name": "env",
+            "prefix": "env",
+            "default": "production"
+        }
+    ],
+    "layout_type": "ordered",
+    "notify_list": [],
+    "reflow_type": "fixed",
+    "tags": [
+        "llm",
+        "observability",
+        "gemini",
+        "vertex-ai",
+        "hackathon:ai-partner-catalyst",
+        "partner:datadog"
+    ]
+}
