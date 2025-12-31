@@ -18,7 +18,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -179,6 +180,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for dashboard
+import pathlib
+dashboard_path = pathlib.Path(__file__).parent.parent / "dashboard"
+if dashboard_path.exists():
+    app.mount("/dashboard", StaticFiles(directory=str(dashboard_path), html=True), name="dashboard")
+    logger.info(f"✓ Dashboard mounted at /dashboard")
+
+
+# Root redirect to dashboard
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect root to dashboard."""
+    return RedirectResponse(url="/dashboard/index.html")
 
 
 # ============================================================================
@@ -361,9 +376,144 @@ async def root():
         "endpoints": {
             "chat": "POST /chat - Send prompts and receive responses with full observability",
             "health": "GET /health - Health check and component status",
-            "metrics": "GET /metrics/summary - Recent metrics and anomalies"
+            "metrics": "GET /metrics/summary - Recent metrics and anomalies",
+            "trigger_anomaly": "POST /trigger-anomaly - Simulate anomaly for demo"
         },
         "documentation": "/docs"
+    }
+
+
+@app.post("/trigger-anomaly")
+async def trigger_anomaly(anomaly_type: str = "latency"):
+    """
+    Trigger synthetic anomalies for demonstration purposes.
+    
+    This endpoint creates SYNTHETIC anomalies directly (bypassing the detector's
+    baseline requirement) to demonstrate the incident creation workflow.
+    
+    Args:
+        anomaly_type: Type of anomaly - 'latency', 'tokens', 'cost', or 'all'
+    """
+    import random
+    from datetime import datetime
+    
+    # Create synthetic anomalies directly (no baseline needed for demo)
+    anomalies = []
+    synthetic_metrics = {}
+    
+    if anomaly_type in ["latency", "all"]:
+        latency_value = random.uniform(15000, 25000)
+        synthetic_metrics["llm.latency.ms"] = latency_value
+        anomalies.append({
+            "metric_name": "llm.latency.ms",
+            "value": round(latency_value, 2),
+            "z_score": round(random.uniform(4.5, 8.0), 2),
+            "deviation_percent": round(random.uniform(800, 1500), 2),
+            "severity": "SEV-1",
+            "direction": "high",
+            "baseline_mean": round(random.uniform(800, 1200), 2),
+            "baseline_std": round(random.uniform(150, 300), 2),
+            "timestamp": datetime.utcnow().isoformat()
+        })
+    
+    if anomaly_type in ["tokens", "all"]:
+        token_value = random.uniform(50000, 100000)
+        synthetic_metrics["llm.tokens.total"] = token_value
+        anomalies.append({
+            "metric_name": "llm.tokens.total",
+            "value": round(token_value, 2),
+            "z_score": round(random.uniform(5.0, 9.0), 2),
+            "deviation_percent": round(random.uniform(1000, 2000), 2),
+            "severity": "SEV-1",
+            "direction": "high",
+            "baseline_mean": round(random.uniform(2000, 5000), 2),
+            "baseline_std": round(random.uniform(500, 1000), 2),
+            "timestamp": datetime.utcnow().isoformat()
+        })
+    
+    if anomaly_type in ["cost", "all"]:
+        cost_value = random.uniform(0.5, 1.0)
+        synthetic_metrics["llm.cost.per_request"] = cost_value
+        anomalies.append({
+            "metric_name": "llm.cost.per_request",
+            "value": round(cost_value, 6),
+            "z_score": round(random.uniform(6.0, 10.0), 2),
+            "deviation_percent": round(random.uniform(2000, 5000), 2),
+            "severity": "SEV-1",
+            "direction": "high",
+            "baseline_mean": round(random.uniform(0.0001, 0.001), 6),
+            "baseline_std": round(random.uniform(0.00005, 0.0002), 6),
+            "timestamp": datetime.utcnow().isoformat()
+        })
+    
+    # Send synthetic metrics to Datadog
+    if app_state.telemetry:
+        try:
+            app_state.telemetry.send_batch_metrics(
+                synthetic_metrics,
+                tags=["type:synthetic", "source:demo_trigger"]
+            )
+            logger.info(f"Sent synthetic metrics to Datadog: {synthetic_metrics}")
+        except Exception as e:
+            logger.warning(f"Failed to send synthetic metrics: {e}")
+    
+    # Add to detector's recent anomalies for display
+    if app_state.anomaly_detector:
+        for anomaly in anomalies:
+            app_state.anomaly_detector._recent_anomalies.append(anomaly)
+            app_state.anomaly_detector.anomalies_detected += 1
+    
+    incident_created = None
+    
+    if anomalies:
+        # Get correlations (will work with our synthetic anomalies)
+        correlations = {"pattern": "high_latency_cost_spike", "correlated_metrics": list(synthetic_metrics.keys())}
+        
+        # Run root cause analysis (sync function - uses Gemini for AI descriptions)
+        root_cause = None
+        if app_state.root_cause_analyzer:
+            try:
+                root_cause = app_state.root_cause_analyzer.analyze(
+                    anomalies=anomalies,
+                    recent_metrics=synthetic_metrics
+                )
+                logger.info(f"Root cause analysis completed: {root_cause}")
+            except Exception as e:
+                logger.warning(f"Root cause analysis failed: {e}")
+                root_cause = {
+                    "summary": "Synthetic anomaly triggered for demonstration",
+                    "likely_causes": ["Demo trigger activated", "Test scenario for observability showcase"],
+                    "recommendations": ["This is a demonstration - no action required"]
+                }
+        
+        # Create incident (sync function - don't use await)
+        if app_state.incident_creator:
+            try:
+                incident = app_state.incident_creator.create_incident(
+                    anomalies=anomalies,
+                    root_cause_analysis=root_cause or {},
+                    correlation_info=correlations
+                )
+                if incident:
+                    incident_created = {
+                        "id": incident.get("id"),
+                        "url": incident.get("url"),
+                        "title": incident.get("title"),
+                        "severity": incident.get("severity")
+                    }
+                    logger.info(f"Incident created: {incident_created}")
+            except Exception as e:
+                logger.error(f"Incident creation failed: {e}", exc_info=True)
+    
+    logger.info(f"Demo trigger completed: {len(anomalies)} anomalies, incident: {incident_created}")
+    
+    return {
+        "status": "triggered",
+        "anomaly_type": anomaly_type,
+        "synthetic_metrics": synthetic_metrics,
+        "anomalies_detected": anomalies,
+        "incident_created": incident_created,
+        "message": f"Successfully triggered {len(anomalies)} synthetic anomaly(ies) for demonstration"
     }
 
 

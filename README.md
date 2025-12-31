@@ -10,7 +10,7 @@ Real-time monitoring and intelligent incident management for LLM applications.
 
 ## Demo Video
 
-[![Sentinel Demo](https://img.youtube.com/vi/PLACEHOLDER/maxresdefault.jpg)](https://www.youtube.com/watch?v=PLACEHOLDER)
+[![Sentinel Demo](https://img.youtube.com/vi/5i0pCwsFZ_g/maxresdefault.jpg)](https://youtu.be/5i0pCwsFZ_g)
 
 > **Watch the 3-minute demo** showing real-time anomaly detection and automated incident creation.
 
@@ -54,184 +54,233 @@ curl -X POST https://sentinel-pas233odta-uc.a.run.app/chat \
 
 ### Prerequisites
 
-- Python 3.11+
-- Datadog account ([free trial](https://www.datadoghq.com/))
-- Google AI API key ([get one here](https://aistudio.google.com/apikey))
+Before you begin, make sure you have:
 
-### Installation
+- **Python 3.11+** - [Download here](https://www.python.org/downloads/)
+- **Git** - [Download here](https://git-scm.com/downloads)
+- **Datadog Account** - [Free trial](https://www.datadoghq.com/) (need API Key + App Key)
+- **Google AI API Key** - [Get one here](https://aistudio.google.com/apikey)
+
+For Cloud Run deployment, also install:
+- **Google Cloud SDK** - [Install here](https://cloud.google.com/sdk/docs/install)
+
+---
+
+## 🧪 Local Testing (Step-by-Step)
+
+### Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/dbisina/sentinel-llm-observability.git
 cd sentinel-llm-observability
+```
 
-# Create virtual environment
+### Step 2: Create Virtual Environment
+
+**Windows:**
+```bash
 python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Mac/Linux
+venv\Scripts\activate
+```
 
-# Install dependencies
+**Mac/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Step 3: Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### Configuration
+### Step 4: Get Your API Keys
 
-Create a `.env` file:
+1. **Datadog API Key:**
+   - Go to [Datadog > Organization Settings > API Keys](https://app.datadoghq.eu/organization-settings/api-keys)
+   - Click "New Key" and copy it
+
+2. **Datadog App Key:**
+   - Go to [Datadog > Organization Settings > Application Keys](https://app.datadoghq.eu/organization-settings/application-keys)
+   - Click "New Key" and copy it
+
+3. **Google AI API Key:**
+   - Go to [Google AI Studio](https://aistudio.google.com/apikey)
+   - Click "Create API Key" and copy it
+
+### Step 5: Create Environment File
+
+Create a file named `.env` in the project root:
 
 ```env
-DD_API_KEY=your_datadog_api_key
-DD_APP_KEY=your_datadog_app_key
-GOOGLE_API_KEY=your_google_ai_api_key
+# Datadog Credentials (REQUIRED)
+DD_API_KEY=your_datadog_api_key_here
+DD_APP_KEY=your_datadog_app_key_here
 DD_SITE=datadoghq.eu
+
+# Google AI Credentials (REQUIRED)
+GOOGLE_API_KEY=your_google_ai_api_key_here
+
+# Optional Configuration
+ANOMALY_THRESHOLD=3.0
+METRICS_WINDOW_SIZE=100
 ```
 
-### Run
+> ⚠️ **Important:** Replace the placeholder values with your actual API keys!
+
+### Step 6: Run the Application
 
 ```bash
 python main.py
 ```
 
-Visit `http://localhost:8000/docs` for the API documentation.
-
----
-
-## How It Works
-
+You should see output like:
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Sentinel                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  Your App ──▶ /chat ──▶ Gemini API ──▶ Response                 │
-│                  │                         │                     │
-│                  ▼                         ▼                     │
-│           ┌───────────┐            ┌─────────────┐              │
-│           │  Metrics  │            │   Anomaly   │              │
-│           │ Collector │───────────▶│  Detector   │              │
-│           └───────────┘            └──────┬──────┘              │
-│                  │                        │                      │
-│                  ▼                        ▼                      │
-│           ┌───────────┐            ┌─────────────┐              │
-│           │  Datadog  │            │  Root Cause │              │
-│           │ Telemetry │            │  Analyzer   │              │
-│           └───────────┘            └──────┬──────┘              │
-│                                           │                      │
-│                                           ▼                      │
-│                                    ┌─────────────┐              │
-│                                    │  Incident   │              │
-│                                    │  Creator    │              │
-│                                    └─────────────┘              │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+INFO:     Started server process [12345]
+INFO:     Waiting for application startup.
+INFO:     ✓ Metrics collector initialized
+INFO:     ✓ Datadog telemetry initialized
+INFO:     ✓ Anomaly detector initialized
+INFO:     ✓ Incident creator initialized
+INFO:     ✓ Root cause analyzer initialized
+INFO:     ✓ Gemini model initialized
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
-### Flow
+### Step 7: Test the Application
 
-1. **Request comes in** - Your app sends a prompt to `/chat`
-2. **LLM processes** - Sentinel calls Gemini and captures the response
-3. **Metrics collected** - Token counts, latency, costs, quality indicators
-4. **Telemetry sent** - All metrics stream to Datadog in real-time
-5. **Anomaly detection** - Z-score analysis against rolling baselines
-6. **Incident creation** - If anomalies detected, Gemini analyzes root cause and Datadog incident is created
+**Open the Dashboard:**
+- Go to: http://localhost:8000
 
----
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/chat` | POST | Send a prompt, get response with full metrics |
-| `/health` | GET | Component health status |
-| `/metrics/summary` | GET | Aggregated metrics and recent anomalies |
-| `/docs` | GET | Interactive API documentation |
-
-### Example: Send a Chat Request
-
+**Test the API:**
 ```bash
-# Local
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"prompt": "Explain machine learning in simple terms"}'
+  -d '{"prompt": "Hello, what is machine learning?"}'
+```
 
-# Live deployment
-curl -X POST https://sentinel-pas233odta-uc.a.run.app/chat \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Explain machine learning in simple terms"}'
-
-Response includes the LLM output plus:
-- 16 metrics (tokens, costs, latency, etc.)
-- Any detected anomalies
-- Incident details if one was created
+**Check Health:**
+```bash
+curl http://localhost:8000/health
+```
 
 ---
 
-## Metrics Tracked
+## ☁️ Deploy to Google Cloud Run (Step-by-Step)
 
-| Category | Metric | Description |
-|----------|--------|-------------|
-| **Tokens** | `llm.tokens.total` | Total tokens used |
-| | `llm.tokens.prompt` | Input token count |
-| | `llm.tokens.response` | Output token count |
-| | `llm.tokens.ratio` | Input/output ratio |
-| **Cost** | `llm.cost.per_request` | Cost per request ($) |
-| | `llm.cost.input` | Input token cost |
-| | `llm.cost.output` | Output token cost |
-| **Performance** | `llm.latency.ms` | End-to-end latency |
-| | `llm.throughput.tokens_per_sec` | Processing speed |
-| **Quality** | `llm.response.is_refusal` | Detected refusal (0/1) |
-| | `llm.response.has_code` | Contains code (0/1) |
-| | `llm.response.is_truncated` | Truncated response (0/1) |
-| **Prompt** | `llm.prompt.complexity_score` | Prompt complexity |
-| | `llm.prompt.question_count` | Questions in prompt |
-| | `llm.prompt.context_utilization` | Context window usage % |
+### Step 1: Install Google Cloud SDK
 
----
+**Windows:**
+- Download from: https://cloud.google.com/sdk/docs/install
+- Run the installer
+- Open a new terminal after installation
 
-## Anomaly Detection
+**Mac:**
+```bash
+brew install google-cloud-sdk
+```
 
-Sentinel uses **Z-score based detection** with:
+**Linux:**
+```bash
+curl https://sdk.cloud.google.com | bash
+exec -l $SHELL
+```
 
-- **Rolling window**: Last 100 datapoints
-- **Threshold**: 3 standard deviations (configurable)
-- **EWMA baseline**: Smoothed baseline updates
-- **Pattern correlation**: Identifies related anomalies
+### Step 2: Authenticate with Google Cloud
 
-### Detected Patterns
+```bash
+gcloud auth login
+```
 
-- `high_token_latency_spike` - High tokens causing latency
-- `cost_anomaly` - Unexpected cost increase
-- `quality_degradation` - Increased refusals or short responses
-- `throughput_drop` - Processing speed decrease
-- `context_exhaustion` - Context window over-utilization
+This opens a browser window. Sign in with your Google account.
 
----
+### Step 3: Set Your Project
 
-## Incident Management
+```bash
+# List your projects
+gcloud projects list
 
-When anomalies are detected, Sentinel:
+# Set your project (replace with your project ID)
+gcloud config set project YOUR_PROJECT_ID
+```
 
-1. **Correlates** multiple anomalies into patterns
-2. **Analyzes** root cause using Gemini AI
-3. **Creates** Datadog incident with:
-   - Severity level (SEV-1 to SEV-3) based on Z-score
-   - AI-generated root cause explanation
-   - Evidence and correlations
-   - Actionable recommendations
+### Step 4: Enable Required APIs
 
----
+```bash
+gcloud services enable run.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
+```
 
-## Deployment
+### Step 5: Deploy to Cloud Run
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full deployment instructions.
-
-### Quick Deploy to Cloud Run
+Run this command (replace the API keys with your actual values):
 
 ```bash
 gcloud run deploy sentinel \
   --source . \
   --platform managed \
   --region us-central1 \
-  --allow-unauthenticated
+  --allow-unauthenticated \
+  --memory 512Mi \
+  --timeout 300 \
+  --set-env-vars "DD_API_KEY=your_datadog_api_key,DD_APP_KEY=your_datadog_app_key,DD_SITE=datadoghq.eu,GOOGLE_API_KEY=your_google_ai_key"
 ```
+
+> ⚠️ **Replace the placeholder API keys with your actual keys!**
+
+### Step 6: Wait for Deployment
+
+The deployment takes 2-5 minutes. You'll see progress like:
+```
+Building using Dockerfile and target ...
+Uploading sources...
+Building Container... Logs available at [...]
+Creating Revision...
+Routing traffic...
+Done.
+Service URL: https://sentinel-xxxxxx-uc.a.run.app
+```
+
+### Step 7: Verify Deployment
+
+Copy your Service URL and test it:
+
+```bash
+# Test the dashboard (open in browser)
+https://sentinel-xxxxxx-uc.a.run.app
+
+# Test the API
+curl -X POST https://sentinel-xxxxxx-uc.a.run.app/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Hello!"}'
+
+# Check health
+curl https://sentinel-xxxxxx-uc.a.run.app/health
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### "GOOGLE_API_KEY is required"
+- Make sure you set the environment variable correctly
+- Check that your `.env` file is in the project root
+
+### "Datadog API key not configured"
+- Verify your DD_API_KEY is correct
+- Make sure you're using the right Datadog site (datadoghq.eu vs datadoghq.com)
+
+### Cloud Run deployment fails
+- Check that billing is enabled on your Google Cloud project
+- Ensure you have the required APIs enabled (Step 4 above)
+- Check the Cloud Build logs for specific errors
+
+### Incidents not appearing in Datadog
+- Verify your DD_APP_KEY has the right permissions
+- Check that the Incidents API is enabled for your Datadog account
 
 ---
 

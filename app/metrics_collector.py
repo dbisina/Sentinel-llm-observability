@@ -80,6 +80,10 @@ class LLMMetricsCollector:
         self.total_tokens = 0
         self.total_cost = 0.0
         self.start_time = datetime.utcnow()
+        
+        # Latency and throughput tracking
+        self.latencies = []
+        self.throughputs = []
     
     def collect_metrics(
         self,
@@ -120,6 +124,10 @@ class LLMMetricsCollector:
         # Throughput calculations
         latency_seconds = latency_ms / 1000 if latency_ms > 0 else 0.001
         tokens_per_second = total_tokens / latency_seconds if latency_seconds > 0 else 0.0
+        
+        # Track latency and throughput for session stats
+        self.latencies.append(latency_ms)
+        self.throughputs.append(tokens_per_second)
         
         # Quality indicators
         is_refusal = self._is_refusal(response)
@@ -282,6 +290,14 @@ class LLMMetricsCollector:
         """
         elapsed_seconds = (datetime.utcnow() - self.start_time).total_seconds()
         
+        # Calculate latency stats
+        avg_latency = sum(self.latencies) / len(self.latencies) if self.latencies else 0.0
+        min_latency = min(self.latencies) if self.latencies else 0.0
+        max_latency = max(self.latencies) if self.latencies else 0.0
+        
+        # Calculate throughput stats
+        avg_throughput = sum(self.throughputs) / len(self.throughputs) if self.throughputs else 0.0
+        
         return {
             "session.total_requests": float(self.total_requests),
             "session.total_tokens": float(self.total_tokens),
@@ -290,6 +306,11 @@ class LLMMetricsCollector:
             "session.requests_per_minute": round((self.total_requests / elapsed_seconds) * 60, 2) if elapsed_seconds > 0 else 0.0,
             "session.avg_tokens_per_request": round(self.total_tokens / self.total_requests, 2) if self.total_requests > 0 else 0.0,
             "session.avg_cost_per_request": round(self.total_cost / self.total_requests, 6) if self.total_requests > 0 else 0.0,
+            "session.avg_latency_ms": round(avg_latency, 2),
+            "session.min_latency_ms": round(min_latency, 2),
+            "session.max_latency_ms": round(max_latency, 2),
+            "session.avg_throughput": round(avg_throughput, 2),
+            "session.request_count": float(self.total_requests),
         }
     
     def reset_session(self) -> None:
@@ -298,3 +319,5 @@ class LLMMetricsCollector:
         self.total_tokens = 0
         self.total_cost = 0.0
         self.start_time = datetime.utcnow()
+        self.latencies = []
+        self.throughputs = []

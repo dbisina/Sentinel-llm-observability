@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel | LLM Observability</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <img src="logo.png" alt="Sentinel Logo" class="logo-icon">
+            </div>
+            <span class="header-subtitle">LLM Observability Platform</span>
+        </div>
+        <div class="header-right">
+            <!-- Accessibility Toolbar -->
+            <div class="accessibility-toolbar">
+                <button class="a11y-btn" id="btnMagnify" title="Toggle Magnification (100% → 125% → 150%)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                        <path d="M11 8v6M8 11h6" />
+                    </svg>
+                    <span class="a11y-label">Zoom</span>
+                </button>
+                <button class="a11y-btn" id="btnTTS" title="Text-to-Speech (Read Dashboard Aloud)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    </svg>
+                    <span class="a11y-label">Speak</span>
+                </button>
+                <button class="a11y-btn" id="btnContrast" title="High Contrast Mode">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 2v20" />
+                        <path d="M12 2a10 10 0 0 1 0 20" />
+                    </svg>
+                    <span class="a11y-label">Contrast</span>
+                </button>
+                <button class="a11y-btn" id="btnLargeText" title="Large Text Mode">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 7V4h16v3" />
+                        <path d="M9 20h6" />
+                        <path d="M12 4v16" />
+                    </svg>
+                    <span class="a11y-label">Text</span>
+                </button>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Connecting...</span>
+            </div>
+            <span class="last-updated" id="lastUpdated">--</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Stats Row -->
+        <section class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon tokens">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-9m9 10h-9M4 7l4-3v6L4 7zm0 10l4-3v6l-4-3z" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Total Tokens</span>
+                    <span class="stat-value" id="totalTokens">--</span>
+                    <span class="stat-delta positive" id="tokensDelta">--</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon latency">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12,6 12,12 16,14" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Avg Latency</span>
+                    <span class="stat-value" id="avgLatency">--</span>
+                    <span class="stat-delta" id="latencyDelta">--</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon cost">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Total Cost</span>
+                    <span class="stat-value" id="totalCost">--</span>
+                    <span class="stat-meta" id="costPerRequest">--</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon requests">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9v-9m0-9a9 9 0 00-9 9" />
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Requests</span>
+                    <span class="stat-value" id="totalRequests">--</span>
+                    <span class="stat-meta" id="throughput">--</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Metrics Panel -->
+                <section class="panel metrics-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Live Metrics</h2>
+                        <div class="panel-actions">
+                            <button class="btn-icon" id="refreshMetrics" title="Refresh">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 4v6h-6M1 20v-6h6" />
+                                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="metrics-grid" id="metricsGrid">
+                        <!-- Metrics will be populated by JS -->
+                    </div>
+                </section>
+
+                <!-- Chat Tester -->
+                <section class="panel chat-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Test LLM</h2>
+                        <span class="panel-badge" id="chatStatus">Ready</span>
+                    </div>
+                    <div class="chat-container">
+                        <div class="chat-input-wrapper">
+                            <textarea id="promptInput" placeholder="Enter a prompt to test the LLM..."
+                                rows="3"></textarea>
+                            <button class="btn-primary" id="sendPrompt">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13" />
+                                    <polygon points="22,2 15,22 11,13 2,9" />
+                                </svg>
+                                <span>Send</span>
+                            </button>
+                        </div>
+                        <div class="chat-response" id="chatResponse">
+                            <div class="response-placeholder">
+                                Response will appear here with metrics...
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Demo Zone Panel -->
+                <section class="panel demo-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">🎬 Live Demo Zone</h2>
+                        <div class="panel-actions">
+                            <select id="demoAnomalyType" class="demo-select">
+                                <option value="all">All Anomalies</option>
+                                <option value="latency">High Latency</option>
+                                <option value="tokens">Token Spike</option>
+                                <option value="cost">Cost Anomaly</option>
+                            </select>
+                            <button class="btn-demo" id="startDemoBtn">
+                                ▶️ Run Demo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="demo-container">
+                        <!-- Workflow Visualization -->
+                        <div class="demo-workflow">
+                            <div class="demo-step" id="demoStep1" data-step="1">
+                                <div class="step-icon">⚡</div>
+                                <div class="step-label">Anomaly Triggered</div>
+                                <div class="step-status"></div>
+                            </div>
+                            <div class="demo-connector"></div>
+                            <div class="demo-step" id="demoStep2" data-step="2">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-label">AI Detection</div>
+                                <div class="step-status"></div>
+                            </div>
+                            <div class="demo-connector"></div>
+                            <div class="demo-step" id="demoStep3" data-step="3">
+                                <div class="step-icon">🎫</div>
+                                <div class="step-label">Datadog Incident</div>
+                                <div class="step-status"></div>
+                            </div>
+                            <div class="demo-connector"></div>
+                            <div class="demo-step" id="demoStep4" data-step="4">
+                                <div class="step-icon">📧</div>
+                                <div class="step-label">Email Alert</div>
+                                <div class="step-status"></div>
+                            </div>
+                        </div>
+
+                        <!-- Simulated Email Notification -->
+                        <div class="demo-email-notification" id="demoEmailNotification" style="display: none;">
+                            <div class="email-header">
+                                <div class="email-icon">📧</div>
+                                <div class="email-meta">
+                                    <div class="email-from">From: Sentinel Alerts &lt;alerts@sentinel.io&gt;</div>
+                                    <div class="email-to">To: ai-engineer@company.com</div>
+                                    <div class="email-subject">🚨 [SEV-1] LLM Anomaly Detected - Immediate Action
+                                        Required</div>
+                                </div>
+                            </div>
+                            <div class="email-body">
+                                <p><strong>Incident Summary:</strong></p>
+                                <p id="emailIncidentSummary">High latency detected in LLM response pipeline. Z-score:
+                                    4.2 (threshold: 3.0)</p>
+                                <p><strong>Root Cause Analysis:</strong></p>
+                                <p id="emailRootCause">AI analysis indicates potential API rate limiting or increased
+                                    prompt complexity.</p>
+                                <p><strong>Recommended Actions:</strong></p>
+                                <ul>
+                                    <li>Check API quotas and rate limits</li>
+                                    <li>Review recent prompt patterns</li>
+                                    <li>Monitor Datadog dashboard for trends</li>
+                                </ul>
+                                <a href="https://app.datadoghq.eu/incidents" target="_blank" class="email-cta">View
+                                    Incident in Datadog →</a>
+                            </div>
+                        </div>
+
+                        <div class="demo-status" id="demoStatus">
+                            Click "Run Demo" to see the full observability workflow in action
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column">
+                <!-- Anomalies Panel -->
+                <section class="panel anomalies-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Anomaly Detection</h2>
+                        <div class="panel-actions" style="display: flex; gap: 8px; align-items: center;">
+                            <button class="btn-trigger" id="triggerAnomaly" title="Trigger Demo Anomaly">
+                                ⚠️ Trigger
+                            </button>
+                            <span class="anomaly-count" id="anomalyCount">0</span>
+                        </div>
+                    </div>
+                    <div class="anomalies-list" id="anomaliesList">
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>No anomalies detected</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Incidents Panel -->
+                <section class="panel incidents-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Recent Incidents</h2>
+                        <a href="https://app.datadoghq.eu/incidents" target="_blank" class="panel-link">
+                            View in Datadog →
+                        </a>
+                    </div>
+                    <div class="incidents-list" id="incidentsList">
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <span>No incidents created yet</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- System Health -->
+                <section class="panel health-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">System Health</h2>
+                    </div>
+                    <div class="health-grid" id="healthGrid">
+                        <!-- Health status will be populated by JS -->
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <span>Sentinel v1.0</span>
+        <span class="footer-divider">•</span>
+        <span>Powered by Google Gemini & Datadog</span>
+        <span class="footer-divider">•</span>
+        <a href="https://github.com/dbisina/sentinel-llm-observability" target="_blank">GitHub</a>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
